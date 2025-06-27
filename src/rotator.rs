@@ -76,17 +76,21 @@ impl Rotator {
         let yaw_rad = self.yaw.to_radians();
         let roll_rad = self.roll.to_radians();
         
-        // UE uses YXZ rotation order
-        Quat::from_euler(glam::EulerRot::YXZ, yaw_rad, pitch_rad, roll_rad)
+        // Use ZYX Euler order: Z(yaw), Y(pitch), X(roll)
+        // This matches UE's rotation application order
+        Quat::from_euler(glam::EulerRot::ZYX, yaw_rad, pitch_rad, roll_rad)
     }
 
     /// Create from quaternion
     pub fn from_quaternion(quat: Quaternion) -> Self {
-        let (yaw, pitch, roll) = quat.to_euler(glam::EulerRot::YXZ);
+        // To reverse the composition: yaw_quat * pitch_quat * roll_quat
+        // We need to extract in the reverse order
+        // Use ZYX order to match our composition order
+        let (z_rad, y_rad, x_rad) = quat.to_euler(glam::EulerRot::ZYX);
         Self {
-            pitch: pitch.to_degrees(),
-            yaw: yaw.to_degrees(),
-            roll: roll.to_degrees(),
+            pitch: y_rad.to_degrees(),  // Y rotation = Pitch  
+            yaw: z_rad.to_degrees(),    // Z rotation = Yaw
+            roll: x_rad.to_degrees(),   // X rotation = Roll
         }
     }
 
@@ -225,6 +229,66 @@ mod tests {
         // 90 degree yaw should point along positive Y axis
         assert!((forward.y - 1.0).abs() < 0.001);
         assert!(forward.x.abs() < 0.001);
+        assert!(forward.z.abs() < 0.001);
+    }
+
+    #[test]
+    fn test_rotation_vectors() {
+        // Test zero rotation gives expected vectors
+        let zero_rot = Rotator::ZERO;
+        let forward = zero_rot.get_forward_vector();
+        let right = zero_rot.get_right_vector();
+        let up = zero_rot.get_up_vector();
+        
+        // Forward should be X axis
+        assert!((forward.x - 1.0).abs() < 0.001);
+        assert!(forward.y.abs() < 0.001);
+        assert!(forward.z.abs() < 0.001);
+        
+        // Right should be Y axis  
+        assert!(right.x.abs() < 0.001);
+        assert!((right.y - 1.0).abs() < 0.001);
+        assert!(right.z.abs() < 0.001);
+        
+        // Up should be Z axis
+        assert!(up.x.abs() < 0.001);
+        assert!(up.y.abs() < 0.001);
+        assert!((up.z - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_pitch_rotation() {
+        let rot = Rotator::from_pitch(90.0);
+        let forward = rot.get_forward_vector();
+        
+        // In UE, positive pitch typically looks DOWN (negative Z direction)
+        // 90 degree pitch should point along negative Z axis (down)
+        assert!(forward.x.abs() < 0.001);
+        assert!(forward.y.abs() < 0.001);
+        assert!((forward.z + 1.0).abs() < 0.001);  // Changed to -1.0 (down)
+    }
+
+    #[test]
+    fn test_negative_pitch_rotation() {
+        let rot = Rotator::from_pitch(-90.0);
+        let forward = rot.get_forward_vector();
+        
+        // Negative pitch should look UP (positive Z direction)
+        assert!(forward.x.abs() < 0.001);
+        assert!(forward.y.abs() < 0.001);
+        assert!((forward.z - 1.0).abs() < 0.001);  // Should be +1.0 (up)
+    }
+
+    #[test]
+    fn test_quaternion_conversion_roundtrip() {
+        let original = Rotator::new(30.0, 45.0, 60.0);
+        let quat = original.to_quaternion();
+        let back_to_rot = Rotator::from_quaternion(quat);
+        
+        // Should be approximately equal (allowing for floating point precision)
+        assert!((original.pitch - back_to_rot.pitch).abs() < 0.01);
+        assert!((original.yaw - back_to_rot.yaw).abs() < 0.01);
+        assert!((original.roll - back_to_rot.roll).abs() < 0.01);
     }
 
     #[test]

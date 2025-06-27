@@ -2,6 +2,8 @@
 
 use crate::BinarySerializable;
 use glam::{Vec2, Vec3, Vec4};
+use serde::{Deserialize, Serialize};
+use std::fmt;
 
 /// 3D Vector representing position, velocity, direction, etc.
 /// This is the most commonly used vector type in UE.
