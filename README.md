@@ -30,15 +30,24 @@ src/types/
 │   ├── rep_movement.rs # RepMovement for replication
 │   ├── player_net_info.rs # PlayerNetInfo and PlayerRole
 │   └── game_session_info.rs # GameSessionInfo for matchmaking
+├── bounds/             # Bounding volume types
+│   ├── bounding_box.rs # BoundingBox (AABB)
+│   └── bounding_sphere.rs # BoundingSphere
 ├── time/               # Time and duration types
 │   ├── datetime.rs     # DateTime for timestamps
 │   └── timespan.rs     # Timespan for durations
+├── math/               # Additional math utilities
+│   ├── int_vector.rs   # IntVector - 3D integer coordinates
+│   ├── int_vector2.rs  # IntVector2 - 2D integer coordinates  
+│   ├── plane.rs        # Plane and Plane2D for geometric operations
+│   ├── ray.rs          # Ray for ray casting and intersection tests
+│   └── line_segment.rs # LineSegment for geometric operations
+├── color/              # Color representation types
+│   ├── linear_color.rs # LinearColor (HDR, 0.0-1.0 range)
+│   └── color.rs        # Color (sRGB, 0-255 range)
 ├── vector.rs           # 3D vectors and math
 ├── rotator.rs          # Euler angle rotations
 ├── transform.rs        # Location, rotation, scale
-├── color.rs            # sRGB and linear color types
-├── bounds.rs           # Bounding boxes and spheres
-├── math.rs             # Additional math utilities
 ├── guid.rs             # GUID for unique identifiers
 ├── name.rs             # Fast string comparisons
 ├── text.rs             # Localized text support
