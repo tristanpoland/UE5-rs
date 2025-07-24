@@ -28,6 +28,9 @@ pub mod name;
 pub mod text;
 pub mod version;
 
+// Integration tests
+mod integration_tests;
+
 // Re-export commonly used types for convenience
 pub use vector::*;
 pub use rotator::*;

@@ -144,7 +144,7 @@ impl Transform {
 
     /// Combine this transform with another (this transform is applied first)
     pub fn combine(self, other: Transform) -> Self {
-        let combined_matrix = other.to_matrix() * self.to_matrix();
+        let combined_matrix = self.to_matrix() * other.to_matrix();
         Self::from_matrix(combined_matrix)
     }
 
@@ -309,5 +309,77 @@ mod tests {
         let deserialized = Transform::from_binary(&binary).unwrap();
         
         assert!(transform.is_nearly_equal(deserialized, 0.001));
+    }
+
+    #[test]
+    fn test_cross_format_serialization_consistency() {
+        let original = Transform::new(
+            Vector::new(1.23, 4.56, 7.89),
+            Quaternion::from_rotation_y(45.0_f32.to_radians()),
+            Vector::new(2.0, 3.0, 4.0)
+        );
+        
+        // Test that JSON and binary serialization produce equivalent results
+        let json_data = serde_json::to_string(&original).unwrap();
+        let binary_data = original.to_binary().unwrap();
+        
+        let from_json: Transform = serde_json::from_str(&json_data).unwrap();
+        let from_binary = Transform::from_binary(&binary_data).unwrap();
+        
+        // Both should be nearly identical
+        assert!(from_json.is_nearly_equal(from_binary, 0.001));
+        assert!((from_json.location - from_binary.location).length() < 0.001);
+        assert!((from_json.rotation - from_binary.rotation).length() < 0.001);
+        assert!((from_json.scale - from_binary.scale).length() < 0.001);
+    }
+
+    #[test]
+    fn test_serialization_precision() {
+        // Test serialization with various precision levels
+        let high_precision = Transform::new(
+            Vector::new(1.123456789, 2.987654321, 3.456789123),
+            Quaternion::from_rotation_x(0.123456789),
+            Vector::new(0.987654321, 1.234567890, 2.345678901)
+        );
+        
+        // JSON serialization may lose some precision
+        let json = serde_json::to_string(&high_precision).unwrap();
+        let from_json: Transform = serde_json::from_str(&json).unwrap();
+        
+        // Binary should maintain full precision
+        let binary = high_precision.to_binary().unwrap();
+        let from_binary = Transform::from_binary(&binary).unwrap();
+        
+        // Binary should be exact
+        assert!(high_precision.is_nearly_equal(from_binary, f32::EPSILON));
+        
+        // JSON should be close but may have small precision loss
+        assert!(high_precision.is_nearly_equal(from_json, 0.000001));
+    }
+
+    #[test]
+    fn test_serialization_edge_cases() {
+        // Test serialization with extreme values
+        let extreme_transform = Transform::new(
+            Vector::new(f32::MAX / 1000.0, f32::MIN / 1000.0, 0.0),
+            Quaternion::from_rotation_z(std::f32::consts::PI),
+            Vector::new(0.000001, 1000000.0, 1.0)
+        );
+        
+        // Should handle extreme values gracefully
+        let json = serde_json::to_string(&extreme_transform).unwrap();
+        let from_json: Transform = serde_json::from_str(&json).unwrap();
+        
+        let binary = extreme_transform.to_binary().unwrap();
+        let from_binary = Transform::from_binary(&binary).unwrap();
+        
+        // Should not be NaN or infinite
+        assert!(from_json.location.is_finite());
+        assert!(from_json.rotation.is_finite());
+        assert!(from_json.scale.is_finite());
+        
+        assert!(from_binary.location.is_finite());
+        assert!(from_binary.rotation.is_finite());
+        assert!(from_binary.scale.is_finite());
     }
 }

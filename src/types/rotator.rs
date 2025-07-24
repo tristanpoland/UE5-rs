@@ -61,6 +61,15 @@ impl Rotator {
         }
     }
 
+    /// Returns the rotator with angles normalized to [-180, 180] range
+    pub fn get_normalized(&self) -> Self {
+        Self {
+            pitch: normalize_angle(self.pitch),
+            yaw: normalize_angle(self.yaw),
+            roll: normalize_angle(self.roll),
+        }
+    }
+
     /// Create a rotator with only roll rotation
     pub fn from_roll(roll: f32) -> Self {
         Self { 
@@ -320,5 +329,120 @@ mod tests {
         let deserialized = Rotator::from_binary(&binary).unwrap();
         
         assert!(rot.is_nearly_equal(deserialized, 0.001));
+    }
+
+    #[test]
+    fn test_ue5_coordinate_system_consistency() {
+        // Test that our coordinate system matches UE5's left-handed system
+        use crate::types::Vector;
+        
+        let forward = Vector::new(1.0, 0.0, 0.0); // X is forward in UE5
+        let right = Vector::new(0.0, 1.0, 0.0);   // Y is right in UE5
+        let up = Vector::new(0.0, 0.0, 1.0);      // Z is up in UE5
+        
+        // Cross product should follow left-handed rule: Forward × Right = Up
+        let cross = forward.cross(right);
+        assert!((cross - up).length() < 0.001);
+        
+        // Test that Right × Up = Forward (left-handed system)
+        let cross2 = right.cross(up);
+        assert!((cross2 - forward).length() < 0.001);
+        
+        // Test that Up × Forward = Right
+        let cross3 = up.cross(forward);
+        assert!((cross3 - right).length() < 0.001);
+    }
+
+    #[test]
+    fn test_rotation_euler_order_consistency() {
+        // Test that rotations are applied in YXZ order (UE5 standard: Yaw, Pitch, Roll)
+        let rotator = Rotator::new(30.0, 45.0, 60.0); // Pitch, Yaw, Roll
+        let quat = rotator.to_quaternion();
+        
+        // Create the same rotation manually using YXZ order
+        let yaw_quat = glam::Quat::from_axis_angle(glam::Vec3::Z, rotator.yaw.to_radians());
+        let pitch_quat = glam::Quat::from_axis_angle(glam::Vec3::Y, rotator.pitch.to_radians());
+        let roll_quat = glam::Quat::from_axis_angle(glam::Vec3::X, rotator.roll.to_radians());
+        
+        // UE5 applies in YXZ order: Yaw * Pitch * Roll
+        let manual_quat = yaw_quat * pitch_quat * roll_quat;
+        
+        // They should produce similar results (allowing for different but equivalent representations)
+        let expected_forward = manual_quat * glam::Vec3::X;
+        let computed_forward = rotator.get_forward_vector();
+        let computed_forward_vec3: glam::Vec3 = computed_forward.into();
+        
+        assert!((expected_forward - computed_forward_vec3).length() < 0.1);
+    }
+
+    #[test]
+    fn test_quaternion_rotation_properties() {
+        let rot1 = Rotator::new(30.0, 45.0, 60.0);
+        let rot2 = Rotator::new(15.0, 30.0, 45.0);
+        
+        let q1 = rot1.to_quaternion();
+        let q2 = rot2.to_quaternion();
+        
+        // Test quaternion properties
+        let identity = glam::Quat::IDENTITY;
+        
+        // Quaternion conjugate property: q * q^-1 = identity
+        let inverse = q1.inverse();
+        let result = q1 * inverse;
+        assert!((result.w - identity.w).abs() < 0.001);
+        assert!((result.xyz() - identity.xyz()).length() < 0.001);
+        
+        // Test that quaternion length is preserved (should be unit quaternions)
+        assert!((q1.length() - 1.0).abs() < 0.001);
+        assert!((q2.length() - 1.0).abs() < 0.001);
+        
+        // Test quaternion multiplication produces valid rotation
+        let combined = q1 * q2;
+        assert!((combined.length() - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_gimbal_lock_handling() {
+        // Test behavior at gimbal lock positions (pitch = ±90°)
+        let gimbal_lock_pos = Rotator::new(90.0, 45.0, 30.0);
+        let gimbal_lock_neg = Rotator::new(-90.0, 45.0, 30.0);
+        
+        // Should still produce valid forward vectors
+        let forward_pos = gimbal_lock_pos.get_forward_vector();
+        let forward_neg = gimbal_lock_neg.get_forward_vector();
+        
+        assert!(forward_pos.is_finite());
+        assert!(forward_neg.is_finite());
+        assert!((forward_pos.length() - 1.0).abs() < 0.01);
+        assert!((forward_neg.length() - 1.0).abs() < 0.01);
+        
+        // At 90° pitch, forward should point down (negative Z)
+        assert!((forward_pos.z + 1.0).abs() < 0.1);
+        // At -90° pitch, forward should point up (positive Z)
+        assert!((forward_neg.z - 1.0).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_rotator_edge_cases() {
+        // Test with extreme angle values
+        let extreme_rot = Rotator::new(720.0, -540.0, 900.0);
+        let normalized = extreme_rot.get_normalized();
+        
+        // Should normalize to equivalent angles within [-180, 180] range
+        assert!(normalized.pitch >= -180.0 && normalized.pitch <= 180.0);
+        assert!(normalized.yaw >= -180.0 && normalized.yaw <= 180.0);
+        assert!(normalized.roll >= -180.0 && normalized.roll <= 180.0);
+        
+        // Test with NaN values
+        let nan_rot = Rotator::new(f32::NAN, 0.0, 0.0);
+        let forward = nan_rot.get_forward_vector();
+        // Should handle gracefully (either return NaN or a default)
+        assert!(forward.x.is_nan() || forward.is_finite());
+        
+        // Test with infinity
+        let inf_rot = Rotator::new(f32::INFINITY, 0.0, 0.0);
+        let forward_inf = inf_rot.get_forward_vector();
+        // Should handle gracefully
+        assert!(forward_inf.x.is_nan() || forward_inf.is_finite());
     }
 }

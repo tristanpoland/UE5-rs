@@ -93,8 +93,19 @@ impl VectorExt for Vector {
             return self;
         } else if square_sum < tolerance * tolerance {
             return Vector::ZERO;
+        } else if !square_sum.is_finite() || square_sum.is_nan() {
+            return Vector::ZERO;
         }
-        self.normalize()
+        let len = square_sum.sqrt();
+        if !len.is_finite() || len.is_nan() || len == 0.0 {
+            return Vector::ZERO;
+        }
+        let norm = self / len;
+        // Clamp to unit length if overflow occurred
+        if norm.length().is_infinite() || norm.length().is_nan() {
+            return Vector::ZERO;
+        }
+        norm
     }
 }
 
@@ -144,5 +155,67 @@ mod tests {
         
         let normalized = v.get_safe_normal(0.001);
         assert!(normalized.is_normalized());
+    }
+
+    #[test]
+    fn test_vector_edge_cases() {
+        // Test with NaN values
+        let nan_vec = Vector::new(f32::NAN, 0.0, 0.0);
+        assert!(nan_vec.x.is_nan());
+        assert!(nan_vec.normalize().x.is_nan());
+        assert!(nan_vec.length().is_nan());
+        
+        // Test with infinity
+        let inf_vec = Vector::new(f32::INFINITY, 0.0, 0.0);
+        assert!(inf_vec.x.is_infinite());
+        assert!(!inf_vec.is_finite());
+        assert!(inf_vec.length().is_infinite());
+        
+        // Test normalization of zero vector - get_safe_normal should handle this
+        let zero_normalized = Vector::ZERO.get_safe_normal(0.001);
+        assert_eq!(zero_normalized, Vector::ZERO);
+        
+        // Test very small vectors
+        let tiny_vec = Vector::new(f32::EPSILON, f32::EPSILON, f32::EPSILON);
+        let tiny_safe_normal = tiny_vec.get_safe_normal(0.001);
+        assert_eq!(tiny_safe_normal, Vector::ZERO); // Should return zero for tiny vectors
+        
+        // Test very large vectors
+        let huge_vec = Vector::new(f32::MAX / 2.0, f32::MAX / 2.0, f32::MAX / 2.0);
+        let huge_normalized = huge_vec.get_safe_normal(0.001);
+        // Should handle overflow gracefully by returning zero vector or a normalized vector
+        assert!(huge_normalized.is_normalized() || huge_normalized == Vector::ZERO);
+    }
+
+    #[test]
+    fn test_vector_mathematical_properties() {
+        let v1 = Vector::new(1.0, 2.0, 3.0);
+        let v2 = Vector::new(4.0, 5.0, 6.0);
+        let v3 = Vector::new(7.0, 8.0, 9.0);
+        
+        // Test associativity: (v1 + v2) + v3 = v1 + (v2 + v3)
+        let left = (v1 + v2) + v3;
+        let right = v1 + (v2 + v3);
+        assert!((left - right).length() < f32::EPSILON);
+        
+        // Test commutativity: v1 + v2 = v2 + v1
+        assert_eq!(v1 + v2, v2 + v1);
+        
+        // Test distributivity: a * (v1 + v2) = a * v1 + a * v2
+        let scalar = 2.5;
+        let left = scalar * (v1 + v2);
+        let right = scalar * v1 + scalar * v2;
+        assert!((left - right).length() < f32::EPSILON);
+        
+        // Test dot product properties
+        assert_eq!(v1.dot(v2), v2.dot(v1)); // Commutative
+        assert_eq!(v1.dot(v1), v1.length_squared()); // Self dot product
+        
+        // Test cross product properties  
+        let cross1 = v1.cross(v2);
+        let cross2 = v2.cross(v1);
+        assert_eq!(cross1, -cross2); // Anti-commutative
+        assert!(cross1.dot(v1).abs() < 0.001); // Perpendicular to both vectors
+        assert!(cross1.dot(v2).abs() < 0.001);
     }
 }

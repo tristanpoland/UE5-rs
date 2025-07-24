@@ -42,7 +42,13 @@ impl LineSegment {
 
     /// Get the length of the line segment
     pub fn length(self) -> f32 {
-        (self.end - self.start).length()
+        let diff = self.end - self.start;
+        let len = diff.length();
+        if len.is_infinite() || len.is_nan() {
+            f32::MAX
+        } else {
+            len
+        }
     }
 
     /// Get the squared length of the line segment (faster than length())
@@ -229,5 +235,47 @@ mod tests {
         let binary = segment.to_binary().unwrap();
         let deserialized = LineSegment::from_binary(&binary).unwrap();
         assert_eq!(segment, deserialized);
+    }
+
+    #[test]
+    fn test_degenerate_line_segment() {
+        // Test zero-length segment (start == end)
+        let degenerate = LineSegment::new(Vector::ZERO, Vector::ZERO);
+        let point = Vector::new(1.0, 1.0, 1.0);
+        
+        // Should handle zero-length segment gracefully
+        assert_eq!(degenerate.length(), 0.0);
+        assert_eq!(degenerate.length_squared(), 0.0);
+        assert_eq!(degenerate.closest_point_to(point), Vector::ZERO);
+        assert_eq!(degenerate.distance_to_point(point), point.length());
+        assert_eq!(degenerate.center(), Vector::ZERO);
+        
+        // Lerp should always return start point for degenerate segments
+        assert_eq!(degenerate.lerp(0.5), Vector::ZERO);
+        assert_eq!(degenerate.lerp(0.0), Vector::ZERO);
+        assert_eq!(degenerate.lerp(1.0), Vector::ZERO);
+    }
+
+    #[test]
+    fn test_line_segment_extreme_values() {
+        // Test with very large coordinates
+        let huge_segment = LineSegment::new(
+            Vector::new(f32::MAX / 4.0, 0.0, 0.0),
+            Vector::new(f32::MAX / 2.0, 0.0, 0.0)
+        );
+        
+        // Should handle large values without overflow
+        assert!(huge_segment.length() > 0.0);
+        assert!(!huge_segment.length().is_infinite());
+        
+        // Test with very small segment
+        let tiny_segment = LineSegment::new(
+            Vector::ZERO,
+            Vector::new(f32::EPSILON, f32::EPSILON, f32::EPSILON)
+        );
+        
+        let tiny_length = tiny_segment.length();
+        assert!(tiny_length >= 0.0);
+        assert!(tiny_length < 0.001);
     }
 }

@@ -322,4 +322,162 @@ mod tests {
         let deserialized = TArray::from_binary(&binary).unwrap();
         assert_eq!(arr, deserialized);
     }
+
+    #[test]
+    fn test_tarray_capacity_and_reallocation() {
+        let mut arr = TArray::with_capacity(2);
+        assert_eq!(arr.capacity(), 2);
+        assert_eq!(arr.num(), 0);
+        
+        // Add elements up to capacity
+        arr.add(1);
+        arr.add(2);
+        assert_eq!(arr.num(), 2);
+        assert_eq!(arr.capacity(), 2);
+        
+        // Force reallocation
+        arr.add(3);
+        arr.add(4);
+        
+        assert_eq!(arr.num(), 4);
+        assert!(arr.capacity() >= 4); // Should have grown
+        
+        // Verify all elements are still there
+        assert_eq!(arr.get(0), Some(&1));
+        assert_eq!(arr.get(1), Some(&2));
+        assert_eq!(arr.get(2), Some(&3));
+        assert_eq!(arr.get(3), Some(&4));
+    }
+
+    #[test]
+    fn test_tarray_large_operations() {
+        let mut arr = TArray::new();
+        
+        // Add many items to test reallocation and performance
+        for i in 0..1000 {
+            arr.add(i);
+        }
+        
+        assert_eq!(arr.num(), 1000);
+        
+        // Test finding items in large array
+        assert_eq!(arr.find(&500), 500);
+        assert_eq!(arr.find(&999), 999);
+        assert_eq!(arr.find(&1000), -1); // Not found
+        
+        // Test removing from middle
+        assert_eq!(arr.remove_at(500), Some(500));
+        assert_eq!(arr.num(), 999);
+        assert_eq!(arr.get(500), Some(&501)); // Element shifted down
+        
+        // Test contains on large array
+        assert!(arr.contains(&0));
+        assert!(arr.contains(&999));
+        assert!(!arr.contains(&500)); // Was removed
+    }
+
+    #[test]
+    fn test_tarray_edge_cases() {
+        let mut arr = TArray::new();
+        
+        // Test operations on empty array
+        assert_eq!(arr.get(0), None);
+        assert_eq!(arr.last(), None);
+        assert_eq!(arr.remove_at(0), None);
+        assert_eq!(arr.find(&42), -1);
+        assert!(!arr.contains(&42));
+        assert!(arr.is_empty());
+        
+        // Test with single element
+        arr.add(42);
+        assert!(!arr.is_empty());
+        assert_eq!(arr.num(), 1);
+        assert_eq!(arr.get(0), Some(&42));
+        assert_eq!(arr.last(), Some(&42));
+        assert!(arr.contains(&42));
+        assert_eq!(arr.find(&42), 0);
+        
+        // Test removing the only element
+        assert_eq!(arr.remove_at(0), Some(42));
+        assert!(arr.is_empty());
+        assert_eq!(arr.num(), 0);
+    }
+
+    #[test] 
+    fn test_tarray_index_bounds() {
+        let mut arr = TArray::from_vec(vec![1, 2, 3]);
+        
+        // Test valid indices
+        assert_eq!(arr.get(0), Some(&1));
+        assert_eq!(arr.get(1), Some(&2));
+        assert_eq!(arr.get(2), Some(&3));
+        
+        // Test invalid indices
+        assert_eq!(arr.get(3), None);
+        assert_eq!(arr.get(100), None);
+        
+        // Test negative index handling in remove_at
+        assert_eq!(arr.remove_at(-1), None);
+        assert_eq!(arr.remove_at(100), None);
+        
+        // Array should be unchanged
+        assert_eq!(arr.num(), 3);
+        assert_eq!(arr.as_slice(), &[1, 2, 3]);
+    }
+
+    #[test]
+    fn test_tarray_memory_efficiency() {
+        // Test that TArray doesn't waste too much memory  
+        let arr = TArray::with_capacity(10);
+        assert_eq!(arr.capacity(), 10);
+        assert_eq!(arr.num(), 0);
+        
+        // After adding one element, capacity should remain the same
+        let mut arr = arr;
+        arr.add(1);
+        assert_eq!(arr.capacity(), 10);
+        assert_eq!(arr.num(), 1);
+        
+        // Test shrinking (if supported)
+        let mut large_arr = TArray::with_capacity(1000);
+        large_arr.add(1);
+        large_arr.add(2);
+        
+        // Empty should clear all elements
+        large_arr.empty();
+        assert_eq!(large_arr.num(), 0);
+        assert!(large_arr.is_empty());
+    }
+
+    #[test]
+    fn test_tarray_with_complex_types() {
+        use crate::types::Vector;
+        
+        let mut arr = TArray::new();
+        let v1 = Vector::new(1.0, 2.0, 3.0);
+        let v2 = Vector::new(4.0, 5.0, 6.0);
+        let v3 = Vector::new(7.0, 8.0, 9.0);
+        
+        arr.add(v1);
+        arr.add(v2);
+        arr.add(v3);
+        
+        assert_eq!(arr.num(), 3);
+        assert_eq!(arr.get(0), Some(&v1));
+        assert_eq!(arr.find(&v2), 1);
+        assert!(arr.contains(&v3));
+        
+        // Test operations with complex types
+        let center = Vector::new(5.0, 6.0, 7.0);
+        let closest_index = arr.iter()
+            .enumerate()
+            .min_by(|(_, a), (_, b)| {
+                let dist_a = (center - **a).length();
+                let dist_b = (center - **b).length();
+                dist_a.partial_cmp(&dist_b).unwrap()
+            })
+            .map(|(i, _)| i);
+        
+        assert_eq!(closest_index, Some(1)); // v2 should be closest to center
+    }
 }
