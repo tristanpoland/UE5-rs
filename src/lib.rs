@@ -15,21 +15,13 @@
 //! - Binary serialization/deserialization with bincode
 //! - Built on top of the high-performance `glam` math library
 
-pub mod vector;
-pub mod rotator;
-pub mod transform;
-pub mod color;
-pub mod bounds;
+pub mod types;
 
 // Re-export glam types for convenience
 pub use glam::{Mat3, Mat4, Quat, Vec2, Vec3, Vec4};
 
 // Re-export our custom types
-pub use vector::*;
-pub use rotator::*;
-pub use transform::*;
-pub use color::*;
-pub use bounds::*;
+pub use types::*;
 
 /// Trait for binary serialization/deserialization
 pub trait BinarySerializable: Sized {
