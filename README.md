@@ -10,8 +10,45 @@ A comprehensive Rust library providing Unreal Engine 5 data types optimized for 
 - **High Performance**: Built on `glam` with SIMD optimizations
 - **Type Safety**: Leverages Rust's type system for safe game development
 - **UE5 Compatibility**: Familiar method names and behavior for UE developers
+- **Modular Architecture**: Well-organized modules (networking, time, containers, etc.)
 - **Container Types**: UE5-style collections (TArray, TMap, TSet)
 - **Utility Types**: DateTime, GUID, Name, Text, Version and more
+
+## Module Organization
+
+The library is organized into logical modules for better maintainability and ease of use:
+
+```
+src/types/
+├── containers/          # UE5-style collections
+│   ├── tarray.rs       # TArray<T> - Dynamic array
+│   ├── tmap.rs         # TMap<K,V> - Hash map
+│   └── tset.rs         # TSet<T> - Hash set
+├── networking/          # Network-related types
+│   ├── network_guid.rs # NetworkGUID for object identification
+│   ├── network_stats.rs# NetworkStats for connection monitoring
+│   ├── rep_movement.rs # RepMovement for replication
+│   ├── player_net_info.rs # PlayerNetInfo and PlayerRole
+│   └── game_session_info.rs # GameSessionInfo for matchmaking
+├── time/               # Time and duration types
+│   ├── datetime.rs     # DateTime for timestamps
+│   └── timespan.rs     # Timespan for durations
+├── vector.rs           # 3D vectors and math
+├── rotator.rs          # Euler angle rotations
+├── transform.rs        # Location, rotation, scale
+├── color.rs            # sRGB and linear color types
+├── bounds.rs           # Bounding boxes and spheres
+├── math.rs             # Additional math utilities
+├── guid.rs             # GUID for unique identifiers
+├── name.rs             # Fast string comparisons
+├── text.rs             # Localized text support
+└── version.rs          # Version information
+```
+
+All types are re-exported at the crate root for convenience, so you can still use:
+```rust
+use ue_types::*; // Access all types directly
+```
 
 ## Installation
 
@@ -844,13 +881,6 @@ cargo test containers
 cargo test serialization
 ```
 
-## Feature Flags
-
-```toml
-[dependencies]
-ue-types = { version = "0.1.1", default-features = false, features = ["serde"] }
-```
-
 Available features:
 - `serde` (default) - JSON serialization support via serde
 - `binary` (default) - Binary serialization support via bincode
@@ -867,18 +897,3 @@ Available features:
 ## License
 
 MIT License - see LICENSE file for details.
-
-## Changelog
-
-### Version 0.1.1
-- Added utility types: DateTime, Timespan, Guid, Name, Text, Version
-- Extracted types into separate modules for better organization
-- Improved documentation and examples
-- Enhanced container types with more UE5-compatible methods
-
-### Version 0.1.0
-- Initial release with core math types
-- Vector, Rotator, Transform, Color types
-- Bounding volume types
-- Basic container types
-- JSON and binary serialization
