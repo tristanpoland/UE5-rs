@@ -48,52 +48,52 @@ impl Timespan {
 
     /// Create Timespan from days
     pub fn from_days(days: f64) -> Self {
-        Self::from_ticks((days * 86400.0 * crate::types::DateTime::TICKS_PER_SECOND as f64) as i64)
+        Self::from_ticks((days * 86400.0 * super::DateTime::TICKS_PER_SECOND as f64) as i64)
     }
 
     /// Create Timespan from hours
     pub fn from_hours(hours: f64) -> Self {
-        Self::from_ticks((hours * 3600.0 * crate::types::DateTime::TICKS_PER_SECOND as f64) as i64)
+        Self::from_ticks((hours * 3600.0 * super::DateTime::TICKS_PER_SECOND as f64) as i64)
     }
 
     /// Create Timespan from minutes
     pub fn from_minutes(minutes: f64) -> Self {
-        Self::from_ticks((minutes * 60.0 * crate::types::DateTime::TICKS_PER_SECOND as f64) as i64)
+        Self::from_ticks((minutes * 60.0 * super::DateTime::TICKS_PER_SECOND as f64) as i64)
     }
 
     /// Create Timespan from seconds
     pub fn from_seconds(seconds: f64) -> Self {
-        Self::from_ticks((seconds * crate::types::DateTime::TICKS_PER_SECOND as f64) as i64)
+        Self::from_ticks((seconds * super::DateTime::TICKS_PER_SECOND as f64) as i64)
     }
 
     /// Create Timespan from milliseconds
     pub fn from_milliseconds(milliseconds: f64) -> Self {
-        Self::from_ticks((milliseconds * crate::types::DateTime::TICKS_PER_MILLISECOND as f64) as i64)
+        Self::from_ticks((milliseconds * super::DateTime::TICKS_PER_MILLISECOND as f64) as i64)
     }
 
     /// Get total days as floating point
     pub fn total_days(self) -> f64 {
-        self.ticks as f64 / (crate::types::DateTime::TICKS_PER_SECOND as f64 * 86400.0)
+        self.ticks as f64 / (super::DateTime::TICKS_PER_SECOND as f64 * 86400.0)
     }
 
     /// Get total hours as floating point
     pub fn total_hours(self) -> f64 {
-        self.ticks as f64 / (crate::types::DateTime::TICKS_PER_SECOND as f64 * 3600.0)
+        self.ticks as f64 / (super::DateTime::TICKS_PER_SECOND as f64 * 3600.0)
     }
 
     /// Get total minutes as floating point
     pub fn total_minutes(self) -> f64 {
-        self.ticks as f64 / (crate::types::DateTime::TICKS_PER_SECOND as f64 * 60.0)
+        self.ticks as f64 / (super::DateTime::TICKS_PER_SECOND as f64 * 60.0)
     }
 
     /// Get total seconds as floating point
     pub fn total_seconds(self) -> f64 {
-        self.ticks as f64 / crate::types::DateTime::TICKS_PER_SECOND as f64
+        self.ticks as f64 / super::DateTime::TICKS_PER_SECOND as f64
     }
 
     /// Get total milliseconds as floating point
     pub fn total_milliseconds(self) -> f64 {
-        self.ticks as f64 / crate::types::DateTime::TICKS_PER_MILLISECOND as f64
+        self.ticks as f64 / super::DateTime::TICKS_PER_MILLISECOND as f64
     }
 
     /// Add another timespan

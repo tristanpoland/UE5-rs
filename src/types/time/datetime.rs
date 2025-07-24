@@ -4,6 +4,7 @@ use crate::BinarySerializable;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use crate::types::time::timespan::Timespan;
 
 /// UE5-style DateTime for timestamps and scheduling
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -76,18 +77,18 @@ impl DateTime {
     }
 
     /// Add a timespan
-    pub fn add_timespan(self, timespan: crate::types::Timespan) -> Self {
+    pub fn add_timespan(self, timespan: super::Timespan) -> Self {
         Self::from_ticks(self.ticks + timespan.ticks)
     }
 
     /// Subtract a timespan
-    pub fn sub_timespan(self, timespan: crate::types::Timespan) -> Self {
+    pub fn sub_timespan(self, timespan: super::Timespan) -> Self {
         Self::from_ticks(self.ticks - timespan.ticks)
     }
 
     /// Get the difference between two DateTimes as a Timespan
-    pub fn difference(self, other: DateTime) -> crate::types::Timespan {
-        crate::types::Timespan::from_ticks(self.ticks - other.ticks)
+    pub fn difference(self, other: DateTime) -> super::Timespan {
+        super::Timespan::from_ticks(self.ticks - other.ticks)
     }
 
     /// Get the date part (time set to midnight)
@@ -97,9 +98,9 @@ impl DateTime {
     }
 
     /// Get time of day as Timespan since midnight
-    pub fn time_of_day(self) -> crate::types::Timespan {
+    pub fn time_of_day(self) -> super::Timespan {
         let ticks_in_day = self.ticks % (Self::TICKS_PER_SECOND * 86400);
-        crate::types::Timespan::from_ticks(ticks_in_day)
+        super::Timespan::from_ticks(ticks_in_day)
     }
 }
 
@@ -121,7 +122,7 @@ mod tests {
         let diff = dt2.difference(dt1);
         assert_eq!(diff.total_seconds(), 1000.0);
         
-        let dt3 = dt1.add_timespan(crate::types::Timespan::from_seconds(500.0));
+        let dt3 = dt1.add_timespan(super::Timespan::from_seconds(500.0));
         assert_eq!(dt3.to_unix_timestamp(), 1500);
     }
 

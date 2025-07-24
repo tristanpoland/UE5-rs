@@ -22,8 +22,7 @@ pub mod containers;
 pub mod networking;
 
 // Utility types
-pub mod datetime;
-pub mod timespan;
+pub mod time;
 pub mod guid;
 pub mod name;
 pub mod text;
@@ -38,8 +37,7 @@ pub use color::*;
 pub use bounds::*;
 pub use containers::*;
 pub use networking::*;
-pub use datetime::*;
-pub use timespan::*;
+pub use time::*;
 pub use guid::*;
 pub use name::*;
 pub use text::*;
