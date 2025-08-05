@@ -1,5 +1,5 @@
 [package]
-name = "ue-types"
+name = "ue_types"
 version = "0.1.1"
 edition = "2021"
 description = "Common Unreal Engine data types for Rust game servers"
