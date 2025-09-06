@@ -18,7 +18,7 @@
 pub mod types;
 
 // Re-export glam types for convenience
-pub use glam::{Mat3, Mat4, Quat, Vec2, Vec3, Vec4};
+pub use glam::{Mat3, Mat4, Quat, Vec2, Vec3, Vec4, DQuat, DMat3, DMat4, DVec2, DVec3, DVec4};
 
 // Re-export our custom types
 pub use types::*;
