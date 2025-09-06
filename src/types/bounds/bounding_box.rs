@@ -37,8 +37,8 @@ impl BinarySerializable for BoundingBox {}
 impl BoundingBox {
     /// Empty bounding box (inverted min/max for initialization)
     pub const EMPTY: Self = Self {
-        min: Vector::new(f32::INFINITY, f32::INFINITY, f32::INFINITY),
-        max: Vector::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY),
+        min: Vector::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+        max: Vector::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
     };
 
     /// Create a new bounding box with the given min and max corners
@@ -91,13 +91,13 @@ impl BoundingBox {
     }
 
     /// Get the volume of the bounding box
-    pub fn volume(self) -> f32 {
+    pub fn volume(self) -> f64 {
         let size = self.size();
         size.x * size.y * size.z
     }
 
     /// Get the surface area of the bounding box
-    pub fn surface_area(self) -> f32 {
+    pub fn surface_area(self) -> f64 {
         let size = self.size();
         2.0 * (size.x * size.y + size.y * size.z + size.z * size.x)
     }
@@ -155,7 +155,7 @@ impl BoundingBox {
     }
 
     /// Expand the bounding box by a given amount in all directions
-    pub fn expand_by(self, amount: f32) -> Self {
+    pub fn expand_by(self, amount: f64) -> Self {
         let expansion = Vector::splat(amount);
         Self {
             min: self.min - expansion,
@@ -202,7 +202,7 @@ impl BoundingBox {
     }
 
     /// Get the distance from a point to the bounding box (0 if inside)
-    pub fn distance_to_point(self, point: Vector) -> f32 {
+    pub fn distance_to_point(self, point: Vector) -> f64 {
         let closest = point.clamp(self.min, self.max);
         (point - closest).length()
     }

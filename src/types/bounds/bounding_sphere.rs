@@ -15,7 +15,7 @@ pub struct BoundingSphere {
     /// Center of the sphere
     pub center: Vector,
     /// Radius of the sphere
-    pub radius: f32,
+    pub radius: f64,
 }
 
 impl fmt::Display for BoundingSphere {
@@ -32,7 +32,7 @@ impl BinarySerializable for BoundingSphere {}
 
 impl BoundingSphere {
     /// Create a new bounding sphere
-    pub fn new(center: Vector, radius: f32) -> Self {
+    pub fn new(center: Vector, radius: f64) -> Self {
         Self { center, radius }
     }
 
@@ -56,19 +56,19 @@ impl BoundingSphere {
         let radius = points
             .iter()
             .map(|&point| (point - center).length())
-            .fold(0.0f32, f32::max);
+            .fold(0.0, f64::max);
 
         Self { center, radius }
     }
 
     /// Get the volume of the sphere
-    pub fn volume(self) -> f32 {
-        (4.0 / 3.0) * std::f32::consts::PI * self.radius.powi(3)
+    pub fn volume(self) -> f64 {
+        (4.0 / 3.0) * std::f64::consts::PI * self.radius.powi(3)
     }
 
     /// Get the surface area of the sphere
-    pub fn surface_area(self) -> f32 {
-        4.0 * std::f32::consts::PI * self.radius * self.radius
+    pub fn surface_area(self) -> f64 {
+        4.0 * std::f64::consts::PI * self.radius * self.radius
     }
 
     /// Check if a point is inside the sphere
@@ -112,7 +112,7 @@ impl BoundingSphere {
     }
 
     /// Get the distance from a point to the sphere surface (negative if inside)
-    pub fn distance_to_point(self, point: Vector) -> f32 {
+    pub fn distance_to_point(self, point: Vector) -> f64 {
         (point - self.center).length() - self.radius
     }
 

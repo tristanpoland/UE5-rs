@@ -11,7 +11,7 @@ pub struct Plane2D {
     /// Plane normal (should be normalized)
     pub normal: Vector2D,
     /// Distance from origin along normal
-    pub distance: f32,
+    pub distance: f64,
 }
 
 impl fmt::Display for Plane2D {
@@ -25,7 +25,7 @@ impl BinarySerializable for Plane2D {}
 
 impl Plane2D {
     /// Create a new 2D plane
-    pub fn new(normal: Vector2D, distance: f32) -> Self {
+    pub fn new(normal: Vector2D, distance: f64) -> Self {
         Self { normal, distance }
     }
 
@@ -37,12 +37,12 @@ impl Plane2D {
     }
 
     /// Get the signed distance from a point to the plane
-    pub fn distance_to_point(self, point: Vector2D) -> f32 {
+    pub fn distance_to_point(self, point: Vector2D) -> f64 {
         self.normal.dot(point) - self.distance
     }
 
     /// Check which side of the plane a point is on
-    pub fn point_side(self, point: Vector2D) -> f32 {
+    pub fn point_side(self, point: Vector2D) -> f64 {
         self.distance_to_point(point)
     }
 
@@ -63,7 +63,7 @@ pub struct Plane {
     /// Plane normal (should be normalized)
     pub normal: Vector,
     /// Distance from origin along normal
-    pub distance: f32,
+    pub distance: f64,
 }
 
 impl fmt::Display for Plane {
@@ -77,7 +77,7 @@ impl BinarySerializable for Plane {}
 
 impl Plane {
     /// Create a new 3D plane
-    pub fn new(normal: Vector, distance: f32) -> Self {
+    pub fn new(normal: Vector, distance: f64) -> Self {
         Self { normal, distance }
     }
 
@@ -97,12 +97,12 @@ impl Plane {
     }
 
     /// Get the signed distance from a point to the plane
-    pub fn distance_to_point(self, point: Vector) -> f32 {
+    pub fn distance_to_point(self, point: Vector) -> f64 {
         self.normal.dot(point) - self.distance
     }
 
     /// Check which side of the plane a point is on
-    pub fn point_side(self, point: Vector) -> f32 {
+    pub fn point_side(self, point: Vector) -> f64 {
         self.distance_to_point(point)
     }
 

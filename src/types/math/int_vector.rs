@@ -40,7 +40,7 @@ impl IntVector {
 
     /// Convert to floating point Vector
     pub fn to_vector(self) -> Vector {
-        Vector::new(self.x as f32, self.y as f32, self.z as f32)
+        Vector::new(self.x as f64, self.y as f64, self.z as f64)
     }
 
     /// Create from floating point Vector (rounds to nearest integer)

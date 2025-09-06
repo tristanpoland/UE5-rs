@@ -70,9 +70,9 @@ impl<T> TArray<T> {
     }
 
     /// Add an element to the end (UE5: Add())
-    pub fn add(&mut self, item: T) -> i32 {
+    pub fn add(&mut self, item: T) -> i64 {
         self.data.push(item);
-        (self.data.len() - 1) as i32
+        (self.data.len() - 1) as i64
     }
 
     /// Add an element using push semantics

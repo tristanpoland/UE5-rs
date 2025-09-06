@@ -41,18 +41,18 @@ impl LineSegment {
     }
 
     /// Get the length of the line segment
-    pub fn length(self) -> f32 {
+    pub fn length(self) -> f64 {
         let diff = self.end - self.start;
         let len = diff.length();
         if len.is_infinite() || len.is_nan() {
-            f32::MAX
+            f64::MAX
         } else {
             len
         }
     }
 
     /// Get the squared length of the line segment (faster than length())
-    pub fn length_squared(self) -> f32 {
+    pub fn length_squared(self) -> f64 {
         (self.end - self.start).length_squared()
     }
 
@@ -62,12 +62,12 @@ impl LineSegment {
     }
 
     /// Get a point along the line segment (t=0 is start, t=1 is end)
-    pub fn lerp(self, t: f32) -> Vector {
+    pub fn lerp(self, t: f64) -> Vector {
         self.start.lerp(self.end, t.clamp(0.0, 1.0))
     }
 
     /// Get a point along the line segment without clamping t
-    pub fn lerp_unclamped(self, t: f32) -> Vector {
+    pub fn lerp_unclamped(self, t: f64) -> Vector {
         self.start.lerp(self.end, t)
     }
 
@@ -76,35 +76,35 @@ impl LineSegment {
         let segment_vec = self.end - self.start;
         let segment_length_squared = segment_vec.length_squared();
         
-        if segment_length_squared < f32::EPSILON {
+        if segment_length_squared < f64::EPSILON {
             // Degenerate segment (start == end)
             return self.start;
         }
         
         let to_point = point - self.start;
         let t = to_point.dot(segment_vec) / segment_length_squared;
-        self.lerp(t)
+        self.lerp(t as f64)
     }
 
     /// Get the distance from the line segment to a point
-    pub fn distance_to_point(self, point: Vector) -> f32 {
+    pub fn distance_to_point(self, point: Vector) -> f64 {
         let closest = self.closest_point_to(point);
         (point - closest).length()
     }
 
     /// Get the squared distance from the line segment to a point (faster)
-    pub fn distance_squared_to_point(self, point: Vector) -> f32 {
+    pub fn distance_squared_to_point(self, point: Vector) -> f64 {
         let closest = self.closest_point_to(point);
         (point - closest).length_squared()
     }
 
     /// Check if a point is approximately on the line segment
-    pub fn contains_point(self, point: Vector, tolerance: f32) -> bool {
+    pub fn contains_point(self, point: Vector, tolerance: f64) -> bool {
         self.distance_to_point(point) <= tolerance
     }
 
     /// Extend the line segment by a given distance in both directions
-    pub fn extend(self, distance: f32) -> Self {
+    pub fn extend(self, distance: f64) -> Self {
         let direction = self.direction();
         Self {
             start: self.start - direction * distance,
@@ -113,7 +113,7 @@ impl LineSegment {
     }
 
     /// Scale the line segment from its center by a factor
-    pub fn scale_from_center(self, factor: f32) -> Self {
+    pub fn scale_from_center(self, factor: f64) -> Self {
         let center = self.center();
         let half_vec = (self.end - self.start) * 0.5 * factor;
         Self {
@@ -260,8 +260,8 @@ mod tests {
     fn test_line_segment_extreme_values() {
         // Test with very large coordinates
         let huge_segment = LineSegment::new(
-            Vector::new(f32::MAX / 4.0, 0.0, 0.0),
-            Vector::new(f32::MAX / 2.0, 0.0, 0.0)
+            Vector::new(f64::MAX / 4.0, 0.0, 0.0),
+            Vector::new(f64::MAX / 2.0, 0.0, 0.0)
         );
         
         // Should handle large values without overflow
@@ -271,7 +271,7 @@ mod tests {
         // Test with very small segment
         let tiny_segment = LineSegment::new(
             Vector::ZERO,
-            Vector::new(f32::EPSILON, f32::EPSILON, f32::EPSILON)
+            Vector::new(f64::EPSILON, f64::EPSILON, f64::EPSILON)
         );
         
         let tiny_length = tiny_segment.length();

@@ -39,12 +39,12 @@ impl Ray {
     }
 
     /// Get a point along the ray at the given distance
-    pub fn point_at_distance(self, distance: f32) -> Vector {
+    pub fn point_at_distance(self, distance: f64) -> Vector {
         self.origin + self.direction * distance
     }
 
     /// Alternative name for point_at_distance (UE5 compatibility)
-    pub fn point_at(self, distance: f32) -> Vector {
+    pub fn point_at(self, distance: f64) -> Vector {
         self.point_at_distance(distance)
     }
 
@@ -56,19 +56,19 @@ impl Ray {
     }
 
     /// Get the distance along the ray to the closest point to a given point
-    pub fn distance_to_closest_point(self, point: Vector) -> f32 {
+    pub fn distance_to_closest_point(self, point: Vector) -> f64 {
         let to_point = point - self.origin;
         to_point.dot(self.direction).max(0.0)
     }
 
     /// Get the shortest distance from the ray to a point
-    pub fn distance_to_point(self, point: Vector) -> f32 {
+    pub fn distance_to_point(self, point: Vector) -> f64 {
         let closest = self.closest_point_to(point);
         (point - closest).length()
     }
 
     /// Check if a point is approximately on the ray
-    pub fn contains_point(self, point: Vector, tolerance: f32) -> bool {
+    pub fn contains_point(self, point: Vector, tolerance: f64) -> bool {
         self.distance_to_point(point) <= tolerance
     }
 

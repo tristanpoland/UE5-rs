@@ -37,7 +37,7 @@ impl IntVector2 {
 
     /// Convert to floating point Vector2D
     pub fn to_vector2d(self) -> Vector2D {
-        Vector2D::new(self.x as f32, self.y as f32)
+        Vector2D::new(self.x as f64, self.y as f64)
     }
 
     /// Create from floating point Vector2D (rounds to nearest integer)
